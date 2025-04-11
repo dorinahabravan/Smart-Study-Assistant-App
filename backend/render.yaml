@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: smart-study-backend
+    runtime: python
+    buildCommand: ""
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: DB_USER
+        value: assistant
+      - key: DB_PASSWORD
+        value: password
+      - key: DB_HOST
+        value: localhost
+      - key: DB_PORT
+        value: 3306
+      - key: DB_NAME
+        value: smart_study_db
+      - key: GOOGLE_API_KEY
+        value: your_google_api_key
+      - key: GOOGLE_CSE_ID
+        value: your_google_cse_id
