@@ -9,7 +9,10 @@ const CoursesPage = () => {
   useEffect(() => {
     //fetch("http://127.0.0.1:8000/api/courses") // This was for the local testing
     // NEW (for production)
-      fetch(`${process.env.REACT_APP_API_URL}/api/courses`)
+    //This is for testing
+      //fetch(`${process.env.REACT_APP_API_URL}/api/courses`)
+      //This is for production
+      fetch("https://smart-study-assistant-app.onrender.com/api/courses")
       .then((res) => res.json())
       .then((data) => setCourses(data))
       .catch((err) => console.error("Failed to load courses:", err));
