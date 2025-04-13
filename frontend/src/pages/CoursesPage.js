@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, Grid, Card, CardContent, List, ListItem, ListItemText} from "@mui/material";
+import { Container, Typography, Grid, Card, CardContent, List, ListItem, ListItemText ,  CircularProgress, Box} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,7 +18,9 @@ const CoursesPage = () => {
       fetch("https://smart-study-assistant-app.onrender.com/api/courses")
       .then((res) => res.json())
       .then((data) => setCourses(data))
+      .setLoading(false)
       .catch((err) => console.error("Failed to load courses:", err));
+       setLoading(false);
   }, []);
 
   return (
@@ -25,25 +28,32 @@ const CoursesPage = () => {
       <Typography variant="h4" gutterBottom>
         📚 Available Courses
       </Typography>
-      <Grid container spacing={3}>
-        {courses.map((course, idx) => (
-          <Grid item xs={12} sm={6} md={4} key={idx}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{course.title}</Typography>
-                <Typography variant="subtitle2" gutterBottom>Subtopics:</Typography>
-                <List dense>
-                  {course.subtopics.map((sub, subIdx) => (
-                    <ListItem key={subIdx}>
-                      <ListItemText primary={sub.title} />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" mt={5}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {courses.map((course, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{course.title}</Typography>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    sx={{ marginTop: "1rem" }}
+                    onClick={() => navigate(`/courses/${index}`)}
+                  >
+                    View Course
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Container>
   );
 };
