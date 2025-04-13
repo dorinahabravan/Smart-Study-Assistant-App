@@ -8,7 +8,6 @@ COURSES = {
     "Python Developer": [
         "Python Basics",
         "Variables and Data Types",
-        
         "Control Flow (if/else, loops)",
         "Functions",
         "Modules and Packages",
