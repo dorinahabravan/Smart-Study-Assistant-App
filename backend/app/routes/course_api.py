@@ -20,6 +20,7 @@ def get_courses(db: Session = Depends(get_db)):
         subtopic_links = db.query(TopicDependency.topic_id).filter(
             TopicDependency.prerequisite_id == course.id
         ).all()
+        
         subtopic_ids = [t[0] for t in subtopic_links]
         subtopics = db.query(Topics).filter(Topics.id.in_(subtopic_ids)).all()
 

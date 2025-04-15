@@ -87,18 +87,17 @@ def reset_and_seed_courses():
         db.commit()
         db.refresh(course_topic)
 
-        prev_topic_id = course_topic.id
-
         for title in subtopics:
             topic = Topics(title=title, content=f"{title} content", source="manual")
             db.add(topic)
             db.commit()
             db.refresh(topic)
 
-            dependency = TopicDependency(topic_id=topic.id, prerequisite_id=prev_topic_id)
+            # link this subtopic directly to the course
+            dependency = TopicDependency(topic_id=topic.id, prerequisite_id=course_topic.id)
             db.add(dependency)
-            prev_topic_id = topic.id
 
+            # fetch and attach learning resources
             resources = fetch_resources_google(title)
             if resources:
                 topic.resources = json.dumps(resources)
@@ -107,6 +106,7 @@ def reset_and_seed_courses():
             else:
                 print(f"⚠️ Subtopic: {title} (no resources)")
 
+    db.commit()
     db.close()
     print("\n🎉 All courses seeded and resources fetched.")
 
