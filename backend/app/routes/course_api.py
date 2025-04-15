@@ -9,13 +9,18 @@ router = APIRouter()
 
 @router.get("/api/courses")
 def get_courses(db: Session = Depends(get_db)):
-    courses = db.query(Topics).filter(Topics.source == "course").all()
+    courses = db.query(Topics).filter(Topics.source == "manual").all()
     result = []
 
     for course in courses:
-        # subtopics are linked by TopicDependency
-        dependencies = db.query(TopicDependency).filter(TopicDependency.prerequisite_id == course.id).all()
-        subtopics = [db.query(Topics).get(dep.topic_id) for dep in dependencies]
+        subtopic_ids = db.query(TopicDependency.topic_id).filter(
+            TopicDependency.prerequisite_id == course.id
+        ).all()
+        
+        # Extract topic_ids from subtopic_ids (which is a list of tuples)
+        subtopic_ids = [tid[0] for tid in subtopic_ids]
+
+        subtopics = db.query(Topics).filter(Topics.id.in_(subtopic_ids)).all()
 
         result.append({
             "title": course.title,
