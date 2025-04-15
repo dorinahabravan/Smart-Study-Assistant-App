@@ -15,13 +15,18 @@ const CoursesPage = () => {
     //This is for testing
       //fetch(`${process.env.REACT_APP_API_URL}/api/courses`)
       //This is for production
-      fetch("https://smart-study-assistant-app.onrender.com/api/courses")
-      .then((res) => res.json())
-      .then((data) => setCourses(data))
-      .setLoading(false)
-      .catch((err) => console.error("Failed to load courses:", err));
-       setLoading(false);
-  }, []);
+
+  fetch("https://smart-study-assistant-app.onrender.com/api/courses")
+  .then((res) => res.json())
+  .then((data) => {
+    setCourses(data);
+    setLoading(false); // ✅ only stop loading when data is actually fetched
+  })
+  .catch((err) => {
+    console.error("Failed to load courses:", err);
+    setLoading(false); // ✅ still stop loading even if there's an error
+  });
+}, []);
 
   return (
     <Container>
