@@ -26,3 +26,4 @@ const CourseDetailsPage = () => {
     </Container>
   );
 };
+export default CourseDetailsPage; // ✅ THIS IS REQUIRED
