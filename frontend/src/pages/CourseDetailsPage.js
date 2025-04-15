@@ -1,4 +1,6 @@
 import { useLocation } from "react-router-dom";
+import { Container, Typography, Card, CardContent} from "@mui/material";
+
 
 const CourseDetailsPage = () => {
   const location = useLocation();
