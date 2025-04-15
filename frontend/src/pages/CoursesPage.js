@@ -49,7 +49,7 @@ const CoursesPage = () => {
                     variant="outlined"
                     fullWidth
                     sx={{ marginTop: "1rem" }}
-                    onClick={() => navigate(`/courses/${index}`)}
+                    onClick={() => navigate(`/courses/${index}`, { state: course })}
                   >
                     View Course
                   </Button>
