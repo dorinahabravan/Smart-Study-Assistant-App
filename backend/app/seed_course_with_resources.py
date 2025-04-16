@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from backend.app.database import SessionLocal
 from backend.app.models.init import Topics, TopicDependency
 from backend.app.utils.google_search import fetch_resources_google
+from backend.app.utils.generate_description import generate_description
+
 
 COURSES = {
     "Python Developer": [
@@ -84,6 +86,9 @@ def reset_and_seed_courses():
         
         course_topic = Topics(title=course, content=f"{course} learning path", source="manual")
         db.add(course_topic)
+        prompt = f"Explain the topic '{title}' in simple terms for beginners."
+        description = generate_description(prompt)
+        topic.description = description
         db.commit()
         db.refresh(course_topic)
 

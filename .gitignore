@@ -3,6 +3,7 @@ venv/
 backend/venv/
 
 .env
+backend/.env
 
 # Node
 node_modules/

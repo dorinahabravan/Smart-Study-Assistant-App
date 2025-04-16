@@ -50,6 +50,10 @@ const CourseDetailsPage = () => {
                 <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>
                   Resources:
                 </Typography>
+                <Typography variant="body1" sx={{ marginBottom: "1rem" }}>
+                   {subtopic.description || "No description available."}
+                </Typography>
+
                 <ul>
                   {sub.resources.map((link, i) => (
                     <li key={i}><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>

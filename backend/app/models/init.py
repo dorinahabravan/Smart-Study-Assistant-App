@@ -23,6 +23,8 @@ class Topics(Base):
     source = Column(String(50))
     date_fetched= Column(DateTime, default=datetime.utcnow)
     resources = Column(Text, nullable=True)  # ✅ Add this line
+    description = Column(Text, nullable=True)
+
 
 class Quizzes(Base):
     __tablename__ ='quizzes'

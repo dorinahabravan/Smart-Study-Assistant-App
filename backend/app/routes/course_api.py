@@ -29,8 +29,9 @@ def get_courses(db: Session = Depends(get_db)):
             "subtopics": [
                 {
                     "title": sub.title,
-                    "resources": json.loads(sub.resources or "[]")
-                } for sub in subtopics
+            "description": sub.description,
+            "resources": json.loads(sub.resources or "[]")
+    } for sub in subtopics
             ]
         })
 
