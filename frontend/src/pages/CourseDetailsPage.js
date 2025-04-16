@@ -51,7 +51,7 @@ const CourseDetailsPage = () => {
                   Resources:
                 </Typography>
                 <Typography variant="body1" sx={{ marginBottom: "1rem" }}>
-                   {subtopic.description || "No description available."}
+                 {sub.description || "No description available."}
                 </Typography>
 
                 <ul>
