@@ -1,15 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, Card, CardContent, List, ListItem, Button, Chip } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  Button,
+  Chip
+} from "@mui/material";
+import { useLocation, useParams} from "react-router-dom";
 
 const CourseDetailsPage = () => {
-  const { state: course } = useLocation();
+  const { id } = useParams(); // id from URL like /courses/113
+  const location = useLocation();
+  const [course, setCourse] = useState(location.state || null);
   const [progress, setProgress] = useState({});
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem(`progress_${course.title}`)) || {};
-    setProgress(saved);
-  }, [course.title]);
+    if (!course) {
+      fetch(`http://127.0.0.1:8000/api/courses`) // or your deployed URL
+        .then((res) => res.json())
+        .then((data) => {
+          const found = data.find((c) => c.id === parseInt(id));
+          setCourse(found);
+        });
+    } else {
+      const saved = JSON.parse(localStorage.getItem(`progress_${course.title}`)) || {};
+      setProgress(saved);
+    }
+  }, [course, id]);
 
   const startLearning = () => {
     const updated = {};
@@ -47,13 +67,25 @@ const CourseDetailsPage = () => {
             <Card sx={{ width: "100%" }}>
               <CardContent>
                 <Typography variant="h6">{sub.title}</Typography>
+              
+                <Typography
+  variant="body1"
+  sx={{
+    whiteSpace: "pre-wrap",
+    maxHeight: "300px",
+    overflowY: "auto",
+    backgroundColor: "#f9f9f9",
+    padding: "10px",
+    borderRadius: "4px",
+    marginBottom: "1rem"
+  }}
+>
+  {sub.description || "No description available."}
+
+                </Typography>
                 <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>
                   Resources:
                 </Typography>
-                <Typography variant="body1" sx={{ marginBottom: "1rem" }}>
-                 {sub.description || "No description available."}
-                </Typography>
-
                 <ul>
                   {sub.resources.map((link, i) => (
                     <li key={i}><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>

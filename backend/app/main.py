@@ -31,7 +31,15 @@ def startup_event():
     Base.metadata.create_all(bind=engine)
     print("✅ Tables created")
 
-   
+   # ✅ Allow frontend to connect (CORS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # for dev; restrict in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 #Register the API router
 app.include_router(wikipedia.router)

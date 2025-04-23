@@ -75,6 +75,7 @@ COURSES = {
 def reset_and_seed_courses():
     db: Session = SessionLocal()
 
+    # Wipe all existing data
     db.query(TopicDependency).delete()
     db.query(Topics).delete()
     db.commit()
@@ -83,26 +84,40 @@ def reset_and_seed_courses():
     for course, subtopics in COURSES.items():
         print(f"\n📚 Seeding course: {course}")
 
-        
-        course_topic = Topics(title=course, content=f"{course} learning path", source="manual")
+        # Add course
+        course_topic = Topics(
+            title=course,
+            content=f"{course} learning path",
+            source="manual"
+        )
         db.add(course_topic)
-        prompt = f"Explain the topic '{title}' in simple terms for beginners."
-        description = generate_description(prompt)
-        topic.description = description
         db.commit()
         db.refresh(course_topic)
 
         for title in subtopics:
             topic = Topics(title=title, content=f"{title} content", source="manual")
+
+            # Add Hugging Face description (safe)
+            prompt = f"Explain the topic '{title}' in simple terms for beginners."
+            try:
+                description = generate_description(prompt)
+                topic.description = description
+            except Exception as e:
+                print(f"❌ Hugging Face API error for {title}: {e}")
+                topic.description = None
+
             db.add(topic)
             db.commit()
             db.refresh(topic)
 
-            # link this subtopic directly to the course
-            dependency = TopicDependency(topic_id=topic.id, prerequisite_id=course_topic.id)
+            # Add dependency
+            dependency = TopicDependency(
+                topic_id=topic.id,
+                prerequisite_id=course_topic.id
+            )
             db.add(dependency)
 
-            # fetch and attach learning resources
+            # Fetch learning resources
             resources = fetch_resources_google(title)
             if resources:
                 topic.resources = json.dumps(resources)

@@ -1,38 +1,43 @@
 # routes/course_api.py
+import json
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.app.database import get_db
 from backend.app.models.init import Topics, TopicDependency
-import json
+
 
 router = APIRouter()
 
 @router.get("/api/courses")
 def get_courses(db: Session = Depends(get_db)):
-    # Get only topics that are NOT in the topic_id column (i.e., they're not subtopics)
-    subtopic_ids = db.query(TopicDependency.topic_id).distinct()
+    print("✅ /api/courses endpoint called")
+
+    # Get all topic IDs that are used as subtopics
+    subtopic_ids = [row[0] for row in db.query(TopicDependency.topic_id).distinct().all()]
+
+    # Get only top-level courses (not subtopics)
     courses = db.query(Topics).filter(~Topics.id.in_(subtopic_ids)).all()
 
     result = []
 
     for course in courses:
-        # Get subtopics linked to this course
-        subtopic_links = db.query(TopicDependency.topic_id).filter(
-            TopicDependency.prerequisite_id == course.id
-        ).all()
-        
-        subtopic_ids = [t[0] for t in subtopic_links]
-        subtopics = db.query(Topics).filter(Topics.id.in_(subtopic_ids)).all()
+        # Get the subtopics where this course is the prerequisite
+        links = db.query(TopicDependency).filter(TopicDependency.prerequisite_id == course.id).all()
+        subtopics = []
+
+        for link in links:
+            sub = db.query(Topics).filter(Topics.id == link.topic_id).first()
+            if sub:
+                subtopics.append({
+                    "title": sub.title,
+                    "description": sub.description,
+                    "resources": json.loads(sub.resources or "[]")
+                })
 
         result.append({
+            "id": course.id,
             "title": course.title,
-            "subtopics": [
-                {
-                    "title": sub.title,
-            "description": sub.description,
-            "resources": json.loads(sub.resources or "[]")
-    } for sub in subtopics
-            ]
+            "subtopics": subtopics
         })
 
     return result

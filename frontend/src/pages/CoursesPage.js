@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Container, Typography, Grid, Card, CardContent, Button,  CircularProgress, Box} from "@mui/material";
+import {
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Button,
+  CircularProgress,
+  Box,
+  TextField,
+} from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { TextField } from "@mui/material";
-
-
-
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -14,13 +20,13 @@ const CoursesPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    //fetch("http://127.0.0.1:8000/api/courses") // This was for the local testing
+    fetch("http://127.0.0.1:8000/api/courses") // This was for the local testing
     // NEW (for production)
     //This is for testing
       //fetch(`${process.env.REACT_APP_API_URL}/api/courses`)
       //This is for production
 
-  fetch("https://smart-study-assistant-app.onrender.com/api/courses")
+  //fetch("https://smart-study-assistant-app.onrender.com/api/courses")
   .then((res) => res.json())
   .then((data) => {
     setCourses(data);
@@ -68,7 +74,8 @@ const CoursesPage = () => {
                     variant="outlined"
                     fullWidth
                     sx={{ marginTop: "1rem" }}
-                    onClick={() => navigate(`/courses/${index}`, { state: course })}
+                    onClick={() => navigate(`/courses/${course.id}`, { state: course })}
+
                   >
                     View Course
                   </Button>
