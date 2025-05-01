@@ -16,27 +16,33 @@ const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
   const navigate = useNavigate();
+  const isAuthenticated = () => !!localStorage.getItem("token");
+
+const handleCourseClick = (courseId) => {
+  if (isAuthenticated()) {
+    navigate(`/courses/${courseId}`);
+  } else {
+    alert("Please log in to start learning this course.");
+    navigate("/login");
+  }
+};
+  
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/courses") // This was for the local testing
-    // NEW (for production)
-    //This is for testing
-      //fetch(`${process.env.REACT_APP_API_URL}/api/courses`)
-      //This is for production
-
-  //fetch("https://smart-study-assistant-app.onrender.com/api/courses")
-  .then((res) => res.json())
-  .then((data) => {
-    setCourses(data);
-    setLoading(false); // ✅ only stop loading when data is actually fetched
-  })
-  .catch((err) => {
-    console.error("Failed to load courses:", err);
-    setLoading(false); // ✅ still stop loading even if there's an error
-  });
-}, []);
+    fetch("http://127.0.0.1:8000/api/courses")
+      .then((res) => res.json())
+      .then((data) => {
+        setCourses(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load courses:", err);
+        setLoading(false);
+      });
+  }, []);
+  
+  
 
   return (
     <Container>
@@ -74,7 +80,7 @@ const CoursesPage = () => {
                     variant="outlined"
                     fullWidth
                     sx={{ marginTop: "1rem" }}
-                    onClick={() => navigate(`/courses/${course.id}`, { state: course })}
+                    onClick={() => handleCourseClick(course.id)}
 
                   >
                     View Course

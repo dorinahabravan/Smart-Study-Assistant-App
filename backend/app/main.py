@@ -9,7 +9,8 @@ from backend.app.routes import learn_api
 from backend.app.routes import resources_api
 from backend.app.routes import course_api
 from fastapi.middleware.cors import CORSMiddleware
-
+from backend.app.routes import users_auth
+from backend.app.routes import course_api
 
 
 
@@ -46,6 +47,8 @@ app.include_router(wikipedia.router)
 app.include_router(arxiv.router)
 app.include_router(learn_api.router)
 app.include_router(resources_api.router)
+app.include_router(course_api.router)
+app.include_router(users_auth.router)
 app.include_router(course_api.router)
 
 

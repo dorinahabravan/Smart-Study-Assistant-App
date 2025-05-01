@@ -1,35 +1,77 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Typography,
-  Card,
-  CardContent,
   List,
   ListItem,
   Button,
-  Chip
+  Chip,
+  Box,
 } from "@mui/material";
-import { useLocation, useParams} from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const CourseDetailsPage = () => {
-  const { id } = useParams(); // id from URL like /courses/113
-  const location = useLocation();
-  const [course, setCourse] = useState(location.state || null);
+  const { id } = useParams();
+  const [course, setCourse] = useState(null);
   const [progress, setProgress] = useState({});
+  const [expandedIndex, setExpandedIndex] = useState(null);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   useEffect(() => {
-    if (!course) {
-      fetch(`http://127.0.0.1:8000/api/courses`) // or your deployed URL
-        .then((res) => res.json())
-        .then((data) => {
-          const found = data.find((c) => c.id === parseInt(id));
-          setCourse(found);
-        });
-    } else {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please log in to access the course.");
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    fetch(`http://127.0.0.1:8000/api/courses/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Unauthorized or course not found");
+        return res.json();
+      })
+      .then((data) => {
+        setCourse(data);
+        setAuthenticated(true);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Session expired or course not found.");
+        localStorage.removeItem("token");
+        navigate("/login", { replace: true });
+      });
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (course?.title) {
       const saved = JSON.parse(localStorage.getItem(`progress_${course.title}`)) || {};
       setProgress(saved);
     }
-  }, [course, id]);
+  }, [course?.title]);
+
+  const logActivity = (action, topicTitle) => {
+    const log = JSON.parse(localStorage.getItem("activity_log") || "[]");
+    log.unshift({
+      action,
+      topic: topicTitle,
+      course: course.title,
+      timestamp: new Date().toISOString(),
+    });
+    localStorage.setItem("activity_log", JSON.stringify(log.slice(0, 15)));
+  };
 
   const startLearning = () => {
     const updated = {};
@@ -44,13 +86,15 @@ const CourseDetailsPage = () => {
     const updated = { ...progress, [title]: "completed" };
     setProgress(updated);
     localStorage.setItem(`progress_${course.title}`, JSON.stringify(updated));
+    logActivity("Completed", title);
   };
+
+  if (loading || !course) return <div>Loading...</div>;
+  if (!authenticated) return null;
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
-        {course.title}
-      </Typography>
+      <Typography variant="h4" gutterBottom>{course.title}</Typography>
 
       <Button
         variant="contained"
@@ -61,60 +105,132 @@ const CourseDetailsPage = () => {
         🚀 Start Learning
       </Button>
 
-      <List>
-        {course.subtopics.map((sub, index) => (
-          <ListItem key={index} sx={{ flexDirection: "column", alignItems: "start" }}>
-            <Card sx={{ width: "100%" }}>
-              <CardContent>
-                <Typography variant="h6">{sub.title}</Typography>
-              
-                <Typography
-  variant="body1"
-  sx={{
-    whiteSpace: "pre-wrap",
-    maxHeight: "300px",
-    overflowY: "auto",
-    backgroundColor: "#f9f9f9",
-    padding: "10px",
-    borderRadius: "4px",
-    marginBottom: "1rem"
-  }}
->
-  {sub.description || "No description available."}
+      <Box sx={{ display: "flex", height: "75vh", gap: 2 }}>
+        {/* Left Side */}
+        <Box sx={{ width: "30%", borderRight: "1px solid #ccc", overflowY: "auto", pr: 1 }}>
+          <List>
+            {course.subtopics.map((sub, index) => (
+              <ListItem
+                button
+                key={index}
+                selected={expandedIndex === index}
+                onClick={() => setExpandedIndex(index)}
+                sx={{
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  mb: 1,
+                  cursor: "pointer",
+                }}
+              >
+                {sub.title}
+              </ListItem>
+            ))}
+          </List>
+        </Box>
 
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1, mb: 1 }}>
-                  Resources:
-                </Typography>
-                <ul>
-                  {sub.resources.map((link, i) => (
-                    <li key={i}><a href={link} target="_blank" rel="noopener noreferrer">{link}</a></li>
-                  ))}
-                </ul>
-                <Chip
-                  label={progress[sub.title] || "not started"}
-                  color={
-                    progress[sub.title] === "completed"
-                      ? "success"
-                      : progress[sub.title] === "in_progress"
-                      ? "warning"
-                      : "default"
-                  }
-                  sx={{ mt: 2, mr: 2 }}
-                />
-                {progress[sub.title] !== "completed" && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => markAsComplete(sub.title)}
-                  >
-                    Mark as Completed
-                  </Button>
+        {/* Right Side */}
+        <Box
+          sx={{
+            width: "70%",
+            overflowY: "auto",
+            p: 2,
+            borderRadius: "4px",
+            backgroundColor: "#fafafa",
+            border: "1px solid #ddd",
+          }}
+        >
+          {expandedIndex !== null && (
+            <>
+              <Typography variant="h6">
+                {course.subtopics[expandedIndex].title}
+              </Typography>
+
+              <Typography
+                variant="body1"
+                sx={{
+                  whiteSpace: "pre-wrap",
+                  maxHeight: "300px",
+                  overflowY: "auto",
+                  backgroundColor: "#f9f9f9",
+                  p: 2,
+                  borderRadius: "4px",
+                  mt: 2,
+                }}
+              >
+                {course.subtopics[expandedIndex].description || "No description available."}
+              </Typography>
+
+              <ul>
+                {course.subtopics[expandedIndex].resources.map((link, i) => (
+                  <li key={i}>
+                    <a href={link} target="_blank" rel="noopener noreferrer">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <Chip
+                label={progress[course.subtopics[expandedIndex].title] || "not started"}
+                color={
+                  progress[course.subtopics[expandedIndex].title] === "completed"
+                    ? "success"
+                    : progress[course.subtopics[expandedIndex].title] === "in_progress"
+                    ? "warning"
+                    : "default"
+                }
+                sx={{ mt: 2, mr: 2 }}
+              />
+
+              {progress[course.subtopics[expandedIndex].title] !== "completed" && (
+                <Button
+                  variant="outlined"
+                  onClick={() => markAsComplete(course.subtopics[expandedIndex].title)}
+                  sx={{ mt: 1 }}
+                >
+                  Mark as Completed
+                </Button>
+              )}
+
+              <Box sx={{ mt: 2 }}>
+                {expandedIndex > 0 && (
+                  <Button onClick={() => setExpandedIndex(expandedIndex - 1)}>⬅ Previous</Button>
                 )}
-              </CardContent>
-            </Card>
-          </ListItem>
+                {expandedIndex < course.subtopics.length - 1 && (
+                  <Button onClick={() => setExpandedIndex(expandedIndex + 1)}>Next ➡</Button>
+                )}
+              </Box>
+            </>
+          )}
+        </Box>
+      </Box>
+
+      {/* 📅 Recent Activity */}
+      <Typography variant="h6" sx={{ mt: 5, mb: 2 }}>
+        📅 Recent Activity
+      </Typography>
+
+      <Box
+        sx={{
+          maxHeight: "200px",
+          overflowY: "auto",
+          backgroundColor: "#f1f1f1",
+          p: 2,
+          borderRadius: "6px",
+          border: "1px solid #ddd",
+        }}
+      >
+        {JSON.parse(localStorage.getItem("activity_log") || "[]").map((item, index) => (
+          <Box key={index} sx={{ mb: 1 }}>
+            <Typography variant="body2">
+              <strong>{item.action}</strong> <i>{item.topic}</i> in <u>{item.course}</u>
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {new Date(item.timestamp).toLocaleString()}
+            </Typography>
+          </Box>
         ))}
-      </List>
+      </Box>
     </Container>
   );
 };
