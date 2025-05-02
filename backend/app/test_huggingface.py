@@ -4,7 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
+
+
 headers = {"Authorization": f"Bearer {os.getenv('HUGGINGFACE_API_KEY')}"}
 
 def generate_description(prompt: str) -> str:
@@ -29,7 +31,7 @@ def generate_description(prompt: str) -> str:
 
     try:
         response = requests.post(
-            "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1",
+            "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1",
             headers=headers,
             json=payload
         )

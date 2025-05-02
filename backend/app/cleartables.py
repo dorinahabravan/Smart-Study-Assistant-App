@@ -1,9 +1,9 @@
 from backend.app.database import SessionLocal
-from backend.app.models.init import Topics, TopicDependency
+from backend.app.models.init import Quizzes
 
 db = SessionLocal()
-db.query(TopicDependency).delete()
-db.query(Topics).delete()
+
+db.query(Quizzes).delete()
 db.commit()
 db.close()
-print("✅ Topics and dependencies cleared.")
+print("✅ Quizzes table cleared.")

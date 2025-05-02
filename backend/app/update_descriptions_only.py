@@ -1,7 +1,7 @@
 import os
 from backend.app.database import SessionLocal
 from backend.app.models.init import Topics
-from backend.app.utils.generate_description import generate_description
+from backend.app.utils.generate_description_openai import generate_description  # ✅ your OpenRouter function
 
 # Load DB session
 db = SessionLocal()
@@ -12,16 +12,18 @@ print(f"DB_PASSWORD: {os.getenv('DB_PASSWORD')}")
 print(f"DB_HOST: {os.getenv('DB_HOST')}")
 print(f"DB_PORT: {os.getenv('DB_PORT')}")
 print(f"DB_NAME: {os.getenv('DB_NAME')}")
-
-print(f"🔐 Loaded HF key: {os.getenv('HUGGINGFACE_API_KEY')}")
+print(f"🔐 Loaded OpenRouter key: {os.getenv('OPENROUTER_API_KEY')}")
 
 topics = db.query(Topics).all()
 
 for topic in topics:
     print(f"📝 Updating: {topic.title}")
 
-    # Force regenerate description
-    prompt = f"Explain the topic '{topic.title}' in a structured and beginner-friendly way. Include what it is, why it matters, basic concepts, and real-world examples. Write in a clear and educational tone suitable for people new to programming."
+    prompt = (
+        f"Explain the topic '{topic.title}' in a structured and beginner-friendly way. "
+        "Include what it is, why it matters, basic concepts, and real-world examples. "
+        "Write in a clear and educational tone suitable for people new to programming."
+    )
 
     description = generate_description(prompt)
 

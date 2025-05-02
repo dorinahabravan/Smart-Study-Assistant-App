@@ -39,6 +39,7 @@ const toggleDarkMode = () => {
   setMode(next);
   localStorage.setItem("theme", next);
 };
+
   return (
     
     <ThemeProvider theme={theme}>

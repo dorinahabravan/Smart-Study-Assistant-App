@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Container,
   Typography,
@@ -8,12 +8,40 @@ import {
   Paper,
   Fade,
   Slide,
-  useTheme
+  Card,
+  CardContent,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+
+  const latestNews = [
+    { title: "AI Revolution in Education", summary: "New AI tools are changing how students learn in 2025." },
+    { title: "Tech Job Market Update", summary: "Demand for Python and cloud skills remains high." },
+    { title: "Top 5 IT Certifications", summary: "Certifications that will boost your career this year." },
+    { title: "React 19 Features", summary: "The new release improves server-side rendering and performance." },
+    { title: "Cybersecurity in 2025", summary: "Zero trust and AI-based protection trends." }
+  ];
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    let animationFrameId;
+
+    const scroll = () => {
+      if (container) {
+        container.scrollLeft += 1;
+        if (container.scrollLeft >= container.scrollWidth - container.clientWidth) {
+          container.scrollLeft = 0; // reset scroll
+        }
+      }
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+
+    animationFrameId = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, []);
 
   return (
     <Box>
@@ -56,26 +84,10 @@ const HomePage = () => {
         <Box sx={{ display: "flex", justifyContent: "center" }}>
           <Grid container spacing={4} maxWidth="md" justifyContent="center">
             {[
-              {
-                icon: "🧠",
-                title: "AI Learning Paths",
-                desc: "Get smart, dynamic topic suggestions based on your progress."
-              },
-              {
-                icon: "📘",
-                title: "Course Progress",
-                desc: "Track your learning journey across tech topics and subtopics."
-              },
-              {
-                icon: "🏆",
-                title: "Badges & Motivation",
-                desc: "Earn badges for consistency, course completions, and more."
-              },
-              {
-                icon: "📄",
-                title: "PDF Certificates",
-                desc: "Download a certificate when you finish any course."
-              }
+              { icon: "🧠", title: "AI Learning Paths", desc: "Get smart, dynamic topic suggestions based on your progress." },
+              { icon: "📘", title: "Course Progress", desc: "Track your learning journey across tech topics and subtopics." },
+              { icon: "🏆", title: "Badges & Motivation", desc: "Earn badges for consistency, course completions, and more." },
+              { icon: "📄", title: "PDF Certificates", desc: "Download a certificate when you finish any course." }
             ].map((feature, i) => (
               <Grid item xs={12} sm={6} md={3} key={i} display="flex" justifyContent="center">
                 <Fade in={true} style={{ transitionDelay: `${i * 200}ms` }}>
@@ -135,6 +147,48 @@ const HomePage = () => {
           </Button>
         </Box>
       </Fade>
+
+      {/* 📰 Latest IT News Section (Auto-scroll) */}
+      <Container sx={{ py: 8 }}>
+        <Typography variant="h5" gutterBottom>
+          📰 Latest IT News
+        </Typography>
+        <Box
+  ref={scrollRef}
+  sx={{
+    display: "flex",
+    overflowX: "auto",
+    gap: 2,
+    scrollBehavior: "smooth",
+    "&::-webkit-scrollbar": { display: "none" },
+  }}
+>
+  {[...latestNews, ...latestNews].map((news, index) => (
+    <Card
+      key={index}
+      sx={{
+        minWidth: 280,
+        maxWidth: 300,
+        flex: "0 0 auto",
+        border: "2px solid #ccc",
+        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        "&:hover": {
+          transform: "scale(1.05)",
+          boxShadow: 6,
+        },
+      }}
+    >
+      <CardContent>
+        <Typography variant="h6">{news.title}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {news.summary}
+        </Typography>
+      </CardContent>
+    </Card>
+  ))}
+</Box>
+
+      </Container>
     </Box>
   );
 };
