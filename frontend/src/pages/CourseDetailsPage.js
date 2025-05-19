@@ -9,6 +9,9 @@ import {
   Box,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
+import QuizComponent from './QuizComponent';
+
+
 
 const CourseDetailsPage = () => {
   const { id } = useParams();
@@ -140,6 +143,7 @@ const CourseDetailsPage = () => {
           }}
         >
           {expandedIndex !== null && (
+          
             <>
               <Typography variant="h6">
                 {course.subtopics[expandedIndex].title}
@@ -169,6 +173,18 @@ const CourseDetailsPage = () => {
                   </li>
                 ))}
               </ul>
+              {console.log("🧩 Expanded index:", expandedIndex, "ID:", course.subtopics[expandedIndex]?.id)}
+
+              <QuizComponent
+  topicId={course.subtopics[expandedIndex].id}
+  quizCompleted={progress[course.subtopics[expandedIndex].title] === "completed"}
+  onQuizCompleted={() => {
+    markAsComplete(course.subtopics[expandedIndex].title);
+    
+  }}
+/>
+
+          
 
               <Chip
                 label={progress[course.subtopics[expandedIndex].title] || "not started"}
@@ -182,15 +198,15 @@ const CourseDetailsPage = () => {
                 sx={{ mt: 2, mr: 2 }}
               />
 
-              {progress[course.subtopics[expandedIndex].title] !== "completed" && (
-                <Button
-                  variant="outlined"
-                  onClick={() => markAsComplete(course.subtopics[expandedIndex].title)}
-                  sx={{ mt: 1 }}
-                >
-                  Mark as Completed
-                </Button>
-              )}
+<Chip
+  label={
+    progress[course.subtopics[expandedIndex].title] === "completed"
+      ? "✅ Quiz Passed"
+      : "🚧 In Progress"
+      
+
+  }
+/>
 
               <Box sx={{ mt: 2 }}>
                 {expandedIndex > 0 && (
@@ -228,6 +244,7 @@ const CourseDetailsPage = () => {
             <Typography variant="caption" color="text.secondary">
               {new Date(item.timestamp).toLocaleString()}
             </Typography>
+            
           </Box>
         ))}
       </Box>

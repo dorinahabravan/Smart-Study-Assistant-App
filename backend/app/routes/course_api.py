@@ -23,6 +23,7 @@ def get_course_by_id(course_id: int, db: Session = Depends(get_db)):
         sub = db.query(Topics).filter(Topics.id == link.topic_id).first()
         if sub:
             subtopics.append({
+                "id": sub.id,  # ✅ ADD THIS LINE
                 "title": sub.title,
                 "description": sub.description,
                 "resources": json.loads(sub.resources or "[]")

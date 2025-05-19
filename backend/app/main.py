@@ -11,6 +11,7 @@ from backend.app.routes import course_api
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routes import users_auth
 from backend.app.routes import course_api
+from  backend.app.routes import quiz
 
 
 
@@ -50,6 +51,8 @@ app.include_router(resources_api.router)
 app.include_router(course_api.router)
 app.include_router(users_auth.router)
 app.include_router(course_api.router)
+app.include_router(quiz.router)
+
 
 
 @app.get("/")
