@@ -20,6 +20,7 @@ USE `smart_study_db`;
 --
 -- Table structure for table `quizzes`
 --
+-- Last updated: 22 May 2025
 
 DROP TABLE IF EXISTS `quizzes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
