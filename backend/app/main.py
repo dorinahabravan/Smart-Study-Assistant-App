@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routes import users_auth
 from backend.app.routes import course_api
 from  backend.app.routes import quiz
-
+from backend.app.routes import user_progress
 
 
 
@@ -52,6 +52,7 @@ app.include_router(course_api.router)
 app.include_router(users_auth.router)
 app.include_router(course_api.router)
 app.include_router(quiz.router)
+app.include_router(user_progress.router, prefix="/api")
 
 
 

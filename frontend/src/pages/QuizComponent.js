@@ -6,13 +6,18 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Chip
 } from "@mui/material";
+import { Alert } from "@mui/material";
 
 const QuizComponent = ({ topicId, onQuizCompleted, quizCompleted }) => {
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState("");
   const [score, setScore] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+  const [finalScore, setFinalScore] = useState(null);
+
   const [showFeedback, setShowFeedback] = useState(false);
 const [isCorrect, setIsCorrect] = useState(false);
 const resetQuiz = () => {
@@ -27,6 +32,49 @@ const resetQuiz = () => {
 
 const [quizFailed, setQuizFailed] = useState(false);
 const [resetting, setResetting] = useState(false);
+const pulseStyle = {
+  animation: 'pulse 1.5s infinite',
+  '@keyframes pulse': {
+    '0%': {
+      transform: 'scale(1)',
+      opacity: 1,
+    },
+    '50%': {
+      transform: 'scale(1.05)',
+      opacity: 0.6,
+    },
+    '100%': {
+      transform: 'scale(1)',
+      opacity: 1,
+    },
+  },
+};
+
+const handleQuizCompleted = (scorePercent) => {
+  const token = localStorage.getItem("token");
+  localStorage.setItem("needsProfileRefresh", "true");
+
+
+  fetch("http://127.0.0.1:8000/api/user-progress/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      topic_id: topicId,
+      quiz_score: scorePercent, // ✅ use percent, not raw count
+      completed: true,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("✅ Saved:", data);
+      setFinalScore(scorePercent); // ✅ store for display
+      onQuizCompleted();           // ✅ notify parent after storing
+    });
+};
+
 
 
 
@@ -39,6 +87,9 @@ const [resetting, setResetting] = useState(false);
           setQuestions(data);
           setCurrent(0); // Reset index when topic changes
           setSelected("");
+          setAttempts(0);
+setFinalScore(null);
+
           setScore(0);
         } else {
           console.error("❌ Unexpected quiz format:", data);
@@ -56,42 +107,58 @@ const [resetting, setResetting] = useState(false);
   
   // Don't render if no questions or already completed
   if (!questions.length) return <Typography>No quiz available.</Typography>;
-  if (quizCompleted) return <Typography>✅ Quiz completed!</Typography>;
+  //if (quizCompleted) return <Typography>✅ Quiz completed!</Typography>;
+ 
+  
 
   const q = questions[current];
 
-  const handleNext = () => {
-    const correct = selected === q.correct_answer;
-    setIsCorrect(correct);
-    setShowFeedback(true);
-  
-    if (correct) {
-      setScore(prev => prev + 1);
-    }
-  
-    setTimeout(() => {
-      const isLast = current + 1 === questions.length;
-  
-      if (!isLast) {
-        setCurrent(prev => prev + 1);
-        setSelected("");
-        setShowFeedback(false);
+const handleNext = () => {
+  const correct = selected === q.correct_answer;
+  setIsCorrect(correct);
+  setShowFeedback(true);
+
+  if (correct) {
+    setScore(prev => prev + 1);
+  }
+
+  setTimeout(() => {
+    const isLast = current + 1 === questions.length;
+
+    if (!isLast) {
+      setCurrent(prev => prev + 1);
+      setSelected("");
+      setShowFeedback(false);
+    } else {
+      const final = correct ? score + 1 : score;
+      const percent = Math.round((final / questions.length) * 100);
+      const passed = final === questions.length;
+      const isFirstAttempt = attempts === 0;
+      const isFinalAttempt = attempts === 2;
+
+      if (passed && isFirstAttempt) {
+        // 🎯 All correct on first try → save 100%
+        setFinalScore(100);
+        handleQuizCompleted(100);
+      } else if (!passed && !isFinalAttempt) {
+        // ❌ Not passed → retry allowed
+        setAttempts(prev => prev + 1);
+        setQuizFailed(true);
+        setResetting(true);
+        resetQuiz();
       } else {
-        if (correct && score + 1 === questions.length) {
-          // All correct
-          onQuizCompleted();
-        } else {
-          // ❌ Show fail message and reset
-          setQuizFailed(true);
-          setResetting(true);
-          resetQuiz();
-        }
+        // 🛑 Max attempts reached → save last attempt score
+        setFinalScore(percent);
+        handleQuizCompleted(percent);
       }
-    }, 1500);
-  };
-  
-  
-  
+    }
+  }, 1500);
+};
+
+
+
+
+
   
 
   // Optional: Console log for debugging
@@ -99,6 +166,21 @@ const [resetting, setResetting] = useState(false);
 
   return (
     <Box sx={{ mt: 3 }}>
+      {/* Show attempt counter only during quiz */}
+{!quizCompleted && (
+  <Alert
+    severity={attempts === 2 ? "error" : "warning"}
+    sx={{
+      mb: 2,
+      fontWeight: "bold",
+      ...(attempts === 2 ? pulseStyle : {}), // ✅ apply pulse only on last attempt
+    }}
+  >
+     Attempt {attempts + 1} of 3
+  </Alert>
+)}
+    {!quizCompleted && (
+  <>
       <Typography variant="subtitle1">
         Question {current + 1} of {questions.length}
       </Typography>
@@ -140,7 +222,25 @@ const [resetting, setResetting] = useState(false);
       >
         {current + 1 === questions.length ? "Finish Quiz" : "Next"}
       </Button>
-      
+        </>
+)}
+      <Box sx={{ mt: 2 }}>
+  <Chip
+    label={quizCompleted ? "✅ Quiz Passed" : "🚧 In Progress"}
+    color={quizCompleted ? "success" : "warning"}
+  />
+</Box>
+{quizCompleted && finalScore !== null && (
+  <Box sx={{ mt: 3 }}>
+    <Typography variant="h6" sx={{ color: "green", mb: 1 }}>
+      ✅ Quiz completed!
+    </Typography>
+    <Typography variant="h6">
+      🎯 Your Score: {finalScore}%
+    </Typography>
+    </Box>
+)}
+
     </Box>
 
   );

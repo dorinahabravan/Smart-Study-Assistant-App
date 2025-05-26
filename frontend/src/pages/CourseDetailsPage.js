@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import QuizComponent from './QuizComponent';
+import { LinearProgress } from "@mui/material";
 
 
 
@@ -26,7 +27,10 @@ const CourseDetailsPage = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
-
+  const totalTopics = course?.subtopics?.length || 0;
+  const completedCount = Object.values(progress).filter((status) => status === "completed").length;
+  const overallProgress = totalTopics ? (completedCount / totalTopics) * 100 : 0;
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -97,8 +101,27 @@ const CourseDetailsPage = () => {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>{course.title}</Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+  <Typography variant="h4">{course.title}</Typography>
 
+  <Box sx={{ width: 200 }}>
+    <Typography variant="body2" sx={{ mb: 0.5, textAlign: "right" }}>
+      {Math.round(overallProgress)}% Complete
+    </Typography>
+    <LinearProgress
+  variant="determinate"
+  value={overallProgress}
+  sx={{
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ffe0b2", // light orange background
+    "& .MuiLinearProgress-bar": {
+      backgroundColor: "#fb8c00", // deep orange progress
+    },
+  }}
+/>
+  </Box>
+  </Box>
       <Button
         variant="contained"
         color="primary"
@@ -182,30 +205,6 @@ const CourseDetailsPage = () => {
     markAsComplete(course.subtopics[expandedIndex].title);
     
   }}
-/>
-
-          
-
-              <Chip
-                label={progress[course.subtopics[expandedIndex].title] || "not started"}
-                color={
-                  progress[course.subtopics[expandedIndex].title] === "completed"
-                    ? "success"
-                    : progress[course.subtopics[expandedIndex].title] === "in_progress"
-                    ? "warning"
-                    : "default"
-                }
-                sx={{ mt: 2, mr: 2 }}
-              />
-
-<Chip
-  label={
-    progress[course.subtopics[expandedIndex].title] === "completed"
-      ? "✅ Quiz Passed"
-      : "🚧 In Progress"
-      
-
-  }
 />
 
               <Box sx={{ mt: 2 }}>

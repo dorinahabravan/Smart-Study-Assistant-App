@@ -10,6 +10,8 @@ import {
   Divider,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import Plot from 'react-plotly.js';
+
 
 const UserProfilePage = () => {
   const navigate = useNavigate();
@@ -34,6 +36,20 @@ const UserProfilePage = () => {
       .catch((err) => console.error("Failed to fetch courses:", err));
   }, []);
 
+  useEffect(() => {
+  const interval = setInterval(() => {
+    const refresh = localStorage.getItem("needsProfileRefresh");
+
+    if (refresh === "true") {
+      window.location.reload(); // ✅ simplest way to re-run all progress logic
+      localStorage.setItem("needsProfileRefresh", "false");
+    }
+  }, 1000); // check every 1 second
+
+  return () => clearInterval(interval);
+}, []);
+
+
   const coursesProgress = progressKeys
     .map((key) => {
       const courseTitle = key.replace("progress_", "");
@@ -50,6 +66,12 @@ const UserProfilePage = () => {
           : inProgress > 0
           ? "In Progress"
           : "Not Started";
+
+
+
+
+
+
 
       return {
         courseTitle,
@@ -69,6 +91,10 @@ const UserProfilePage = () => {
 
   const activityLog = JSON.parse(localStorage.getItem("activity_log") || "[]");
 
+
+  const courseNames = coursesProgress.map(c => c.courseTitle);
+      const completionRates = coursesProgress.map(c =>
+      c.total > 0 ? Math.round((c.completed / c.total) * 100) : 0 );
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 4 }}>
@@ -104,6 +130,7 @@ const UserProfilePage = () => {
             Logout
           </Button>
         </Box>
+        
 
         {/* 📊 Course Progress */}
         <Typography variant="h6" sx={{ mb: 2 }}>
@@ -142,6 +169,30 @@ const UserProfilePage = () => {
             </Paper>
           ))}
         </Box>
+
+        <Typography variant="h6" sx={{ mt: 4 }}>
+  📊 Your Course Completion (Interactive)
+</Typography>
+
+<Plot
+  data={[
+    {
+      x: completionRates,
+      y: courseNames,
+      type: 'bar',
+      orientation: 'h',
+      marker: { color: 'teal' },
+    },
+  ]}
+  layout={{
+    title: 'Course Completion by Topic',
+    xaxis: { title: 'Progress (%)', range: [0, 100] },
+    yaxis: { title: 'Course' },
+    height: 400,
+  }}
+  style={{ width: '100%', marginTop: '10px' }}
+/>
+
 
         {/* 🧠 Badges */}
         <Divider sx={{ my: 3 }} />
