@@ -15,7 +15,7 @@ An AI-powered web application that generates quizzes based on personalised learn
 - Auto-generated study paths with topic dependencies
 - Dynamic resource fetching & AI-generated descriptions
 - Quiz system per subtopic
-- Certificate generation & progress tracking
+- Progress tracking
 
 ## 📁 Repository
 [GitHub Repo](https://github.com/dorinahabravan/Smart-Study-Assistant-App)
